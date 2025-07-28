@@ -1,31 +1,32 @@
-import { createClient } from '@supabase/supabase-js'
+# NiVi AI - Personal Life Management Suite
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+A comprehensive personal management application with Google authentication and secure user data storage.
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
-}
+## Features
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+- **Google Authentication**: Secure sign-in with Google OAuth
+- **Finance Management**: Personal budget tracking with intelligent allocation
+- **Document Storage**: Secure document organization and management
+- **Voice Diary**: Voice-to-text diary entries with speech recognition
+- **User Data Privacy**: Each user's data is completely isolated and secure
 
-// Auth helper functions
-export const signInWithGoogle = async () => {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: `${window.location.origin}/finance`
-    }
+## Setup Instructions
+
+### 1. Supabase Setup
+
+1. Go to [Supabase](https://supabase.com) and create a new project
+    urlValue: supabaseUrl === 'your_supabase_project_url' ? 'PLACEHOLDER_VALUE' : 'SET',
+    keyValue: supabaseAnonKey === 'your_supabase_anon_key' ? 'PLACEHOLDER_VALUE' : 'SET'
   })
-  return { data, error }
-}
-
-export const signOut = async () => {
-  const { error } = await supabase.auth.signOut()
-  return { error }
-}
-
-export const getCurrentUser = async () => {
-  const { data: { user }, error } = await supabase.auth.getUser()
-  return { user, error }
-}
+  throw new Error(`
+    Missing or invalid Supabase environment variables.
+    
+    Please follow these steps:
+    1. Go to https://supabase.com and create a new project
+    2. In your project dashboard, go to Settings > API
+    3. Copy your Project URL and anon/public key
+    4. Update your .env file with the actual values:
+       VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+       VITE_SUPABASE_ANON_KEY=your-actual-anon-key
+    5. Restart your development server
+  `)
