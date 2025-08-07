@@ -1,88 +1,190 @@
 # NiVi AI - Personal Life Management Suite
 
-A comprehensive personal finance and life management application built with React, TypeScript, and Supabase.
+A comprehensive personal finance and life management application built with React (JavaScript), Node.js, Express, and MongoDB.
 
 ## Features
 
 - **Finance Management**: Budget allocation, expense tracking, EMI and debt management
 - **Document Storage**: Secure document organization with categorization
 - **Voice Diary**: Voice-to-text diary entries with mood tracking
-- **Email Notifications**: Bank transaction alerts integration
+- **User Authentication**: Secure login and registration system
 - **UPI Payments**: QR code generation and scanning for payments
+
+## Tech Stack
+
+### Frontend
+- React 18 (JavaScript)
+- Tailwind CSS for styling
+- Lucide React for icons
+- React Router for navigation
+- Vite for development and building
+
+### Backend
+- Node.js with Express
+- MongoDB with Mongoose
+- JWT for authentication
+- bcryptjs for password hashing
 
 ## Setup Instructions
 
-### 1. Supabase Setup
+### 1. Prerequisites
 
-1. Go to [Supabase](https://supabase.com) and create a new project
-2. In your Supabase dashboard:
-   - Go to **Settings > API**
-   - Copy your **Project URL** and **anon/public key**
-   - Go to **Authentication > Providers**
-   - Enable **Google** provider
-   - Add your Google OAuth credentials
+Make sure you have the following installed:
+- Node.js (v16 or higher)
+- MongoDB (local installation or MongoDB Atlas account)
+- npm or yarn
 
-### 2. Environment Configuration
+### 2. Clone and Install
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd nivi-ai-finance-manager
+
+# Install dependencies
+npm install
+```
+
+### 3. Environment Configuration
 
 1. Copy `.env.example` to `.env`
-2. Replace the placeholder values with your actual Supabase credentials:
-   ```
-   VITE_SUPABASE_URL=your_supabase_project_url
-   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
+2. Update the environment variables:
 
-### 3. Database Setup
+```env
+# MongoDB Configuration
+MONGODB_URI=mongodb://localhost:27017/nivi-ai
+# Or for MongoDB Atlas:
+# MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/nivi-ai
 
-The database schema will be automatically created when you run the migration. The system includes:
+# JWT Secret (generate a secure random string)
+JWT_SECRET=your_secure_jwt_secret_here
 
-- **User Profiles**: Store user information
-- **Finance Data**: Personal financial information (income, expenses, budgets)
-- **Voice Diary**: Diary entries with voice-to-text
-- **Documents**: Secure document storage
-- **Notifications**: Email notification preferences
+# API Configuration
+VITE_API_URL=http://localhost:5000/api
+```
 
-### 4. Google OAuth Setup
+### 4. Database Setup
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com)
-2. Create a new project or select existing one
-3. Enable Google+ API
-4. Create OAuth 2.0 credentials
-5. Add authorized redirect URIs:
-   - `https://your-project-ref.supabase.co/auth/v1/callback`
-6. Copy Client ID and Client Secret to Supabase
+#### Option A: Local MongoDB
+1. Install MongoDB locally
+2. Start MongoDB service
+3. The application will automatically create the database and collections
+
+#### Option B: MongoDB Atlas (Cloud)
+1. Create a free account at [MongoDB Atlas](https://www.mongodb.com/atlas)
+2. Create a new cluster
+3. Get your connection string
+4. Update `MONGODB_URI` in your `.env` file
 
 ### 5. Run the Application
 
+#### Development Mode (Full Stack)
 ```bash
-npm install
+# Run both frontend and backend
+npm run dev:full
+```
+
+#### Or run separately:
+```bash
+# Terminal 1: Run backend server
+npm run server
+
+# Terminal 2: Run frontend
 npm run dev
 ```
 
+The application will be available at:
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:5000
+
+## Project Structure
+
+```
+├── server/                 # Backend code
+│   ├── models/            # MongoDB models
+│   ├── routes/            # API routes
+│   ├── middleware/        # Express middleware
+│   └── index.js          # Server entry point
+├── src/                   # Frontend code
+│   ├── components/        # React components
+│   ├── contexts/         # React contexts
+│   ├── lib/              # API client
+│   ├── types/            # Type definitions (converted to JS)
+│   └── utils/            # Utility functions
+└── public/               # Static assets
+```
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+- `GET /api/auth/me` - Get current user
+
+### Finance
+- `GET /api/finance` - Get user's finance data
+- `PUT /api/finance` - Update finance data
+
+### Documents
+- `GET /api/documents` - Get user's documents
+- `PUT /api/documents` - Update documents
+
+### Voice Diary
+- `GET /api/voice-diary` - Get diary entries
+- `PUT /api/voice-diary` - Update diary entries
+
 ## Security Features
 
-- **Row Level Security (RLS)**: Each user can only access their own data
-- **Authentication Required**: All routes are protected by authentication
-- **Secure Data Storage**: All sensitive data is encrypted and stored securely
-- **Google OAuth**: Secure authentication through Google
+- **JWT Authentication**: Secure token-based authentication
+- **Password Hashing**: Passwords are hashed using bcryptjs
+- **User Data Isolation**: Each user can only access their own data
+- **CORS Protection**: Configured for secure cross-origin requests
 
 ## Data Privacy
 
-- All user data is stored securely in Supabase
+- All user data is stored securely in MongoDB
 - Each user has complete isolation from other users' data
-- No data is shared between users
-- Users can delete their account and all associated data
+- Passwords are never stored in plain text
+- JWT tokens expire after 7 days for security
 
 ## Development
 
-The application is built with:
-- **React 18** with TypeScript
-- **Tailwind CSS** for styling
-- **Supabase** for backend and authentication
-- **Lucide React** for icons
-- **React Router** for navigation
+### Adding New Features
+1. Create new API routes in `server/routes/`
+2. Add corresponding frontend components in `src/components/`
+3. Update the API client in `src/lib/api.js`
+
+### Database Models
+- User authentication: `server/models/User.js`
+- Finance data: `server/models/FinanceData.js`
+- Documents: `server/models/Documents.js`
+- Voice diary: `server/models/VoiceDiary.js`
 
 ## Deployment
 
-The application can be deployed to any static hosting service like Netlify, Vercel, or GitHub Pages.
+### Frontend (Netlify/Vercel)
+1. Build the frontend: `npm run build`
+2. Deploy the `dist` folder to your hosting service
+3. Set environment variables in your hosting platform
 
-Make sure to set the environment variables in your deployment platform.
+### Backend (Heroku/Railway/DigitalOcean)
+1. Deploy the server code to your hosting service
+2. Set environment variables (MongoDB URI, JWT secret)
+3. Ensure MongoDB is accessible from your hosting platform
+
+### Environment Variables for Production
+- `MONGODB_URI`: Your production MongoDB connection string
+- `JWT_SECRET`: A secure random string for JWT signing
+- `PORT`: Port for the server (usually set by hosting platform)
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.
