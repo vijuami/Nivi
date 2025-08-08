@@ -159,3 +159,4 @@
 +  const handleViewDocument = (document) => {
      setViewingDocument(document);
    };
+}
