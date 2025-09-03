@@ -1,14 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { 
   Mic, 
   MicOff, 
   Play, 
   Pause, 
   Square, 
-  Home,
-  LogOut,
+  Home, 
   Calendar, 
   Search,
   Filter,
@@ -21,7 +19,7 @@ import {
   AlertCircle,
   X
 } from 'lucide-react';
-import { saveUserVoiceDiaryEntries, loadUserVoiceDiaryEntries } from '../utils/supabaseStorage';
+import { saveVoiceDiaryEntries, loadVoiceDiaryEntries } from '../utils/localStorage';
 
 interface DiaryEntry {
   id: string;
@@ -35,7 +33,6 @@ interface DiaryEntry {
 
 export const VoiceDiaryPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
   const [isRecording, setIsRecording] = useState(false);
   const [recordingError, setRecordingError] = useState<string | null>(null);
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
@@ -68,38 +65,17 @@ export const VoiceDiaryPage: React.FC = () => {
 
   // Load entries from localStorage on component mount
   useEffect(() => {
-    const loadUserData = async () => {
-      if (!user) return;
+    const loadedEntries = loadVoiceDiaryEntries();
+    setEntries(loadedEntries);
+    setIsEntriesLoaded(true);
+  }, []);
 
-      try {
-        const loadedEntries = await loadUserVoiceDiaryEntries(user.id);
-        setEntries(loadedEntries);
-        setIsEntriesLoaded(true);
-      } catch (error) {
-        console.error('Error loading user voice diary entries:', error);
-        setEntries([]);
-        setIsEntriesLoaded(true);
-      }
-    };
-
-    loadUserData();
-  }, [user]);
-
-  // Save entries to database whenever entries change (but only after initial load)
+  // Save entries to localStorage whenever entries change (but only after initial load)
   useEffect(() => {
-    if (isEntriesLoaded && user) {
-      saveUserVoiceDiaryEntries(user.id, entries);
+    if (isEntriesLoaded) {
+      saveVoiceDiaryEntries(entries);
     }
-  }, [entries, isEntriesLoaded, user]);
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      navigate('/');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
+  }, [entries, isEntriesLoaded]);
 
   const filteredEntries = entries.filter(entry => {
     // Search in title, content, and tags for specific words
@@ -289,40 +265,13 @@ export const VoiceDiaryPage: React.FC = () => {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => navigate('/')}
-                className="p-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
-                title="Back to Home"
-              >
-                <Home className="h-5 w-5" />
-              </button>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              {/* User Info */}
-              {user && (
-                <div className="hidden sm:flex items-center space-x-2 bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-1">
-                  <div className="w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center">
-                    <span className="text-xs text-white font-medium">
-                      {user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
-                    </span>
-                  </div>
-                  <span className="text-sm text-gray-700 dark:text-gray-200">
-                    {user.user_metadata?.full_name || user.email}
-                  </span>
-                </div>
-              )}
-              
-              {/* Sign Out Button */}
-              <button
-                onClick={handleSignOut}
-                className="p-2 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
-                title="Sign Out"
-              >
-                <LogOut className="h-5 w-5" />
-              </button>
-            </div>
+            <button
+              onClick={() => navigate('/')}
+              className="p-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+              title="Back to Home"
+            >
+              <Home className="h-5 w-5" />
+            </button>
           </div>
           
           <div className="flex items-center space-x-4 mb-6">
@@ -331,14 +280,7 @@ export const VoiceDiaryPage: React.FC = () => {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Voice Diary</h1>
-              <p className="text-gray-600 dark:text-gray-300">
-                Record your thoughts and daily experiences
-                {user && (
-                  <span className="block text-sm mt-1">
-                    Welcome back, {user.user_metadata?.full_name?.split(' ')[0] || 'User'}!
-                  </span>
-                )}
-              </p>
+              <p className="text-gray-600 dark:text-gray-300">Record your thoughts and daily experiences</p>
             </div>
           </div>
 

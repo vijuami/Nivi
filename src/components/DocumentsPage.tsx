@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { 
   FileText, 
   Upload, 
   Search, 
   Filter, 
-  Home,
-  LogOut,
+  Home, 
   Plus, 
   Folder, 
   File as FileIcon,
@@ -19,7 +17,7 @@ import {
   Check,
   AlertCircle
 } from 'lucide-react';
-import { saveUserDocuments, loadUserDocuments } from '../utils/supabaseStorage';
+import { saveDocuments, loadDocuments } from '../utils/localStorage';
 
 interface Document {
   id: string;
@@ -35,7 +33,6 @@ interface Document {
 
 export const DocumentsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -158,38 +155,17 @@ export const DocumentsPage: React.FC = () => {
 
   // Load documents from localStorage on component mount
   useEffect(() => {
-    const loadUserData = async () => {
-      if (!user) return;
+    const loadedDocuments = loadDocuments();
+    setDocuments(loadedDocuments);
+    setIsDocumentsLoaded(true);
+  }, []);
 
-      try {
-        const loadedDocuments = await loadUserDocuments(user.id);
-        setDocuments(loadedDocuments);
-        setIsDocumentsLoaded(true);
-      } catch (error) {
-        console.error('Error loading user documents:', error);
-        setDocuments([]);
-        setIsDocumentsLoaded(true);
-      }
-    };
-
-    loadUserData();
-  }, [user]);
-
-  // Save documents to database whenever documents change (but only after initial load)
+  // Save documents to localStorage whenever documents change (but only after initial load)
   useEffect(() => {
-    if (isDocumentsLoaded && user) {
-      saveUserDocuments(user.id, documents);
+    if (isDocumentsLoaded) {
+      saveDocuments(documents);
     }
-  }, [documents, isDocumentsLoaded, user]);
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      navigate('/');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
+  }, [documents, isDocumentsLoaded]);
 
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -504,40 +480,13 @@ export const DocumentsPage: React.FC = () => {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => navigate('/')}
-                className="p-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
-                title="Back to Home"
-              >
-                <Home className="h-5 w-5" />
-              </button>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              {/* User Info */}
-              {user && (
-                <div className="hidden sm:flex items-center space-x-2 bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-1">
-                  <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
-                    <span className="text-xs text-white font-medium">
-                      {user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
-                    </span>
-                  </div>
-                  <span className="text-sm text-gray-700 dark:text-gray-200">
-                    {user.user_metadata?.full_name || user.email}
-                  </span>
-                </div>
-              )}
-              
-              {/* Sign Out Button */}
-              <button
-                onClick={handleSignOut}
-                className="p-2 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
-                title="Sign Out"
-              >
-                <LogOut className="h-5 w-5" />
-              </button>
-            </div>
+            <button
+              onClick={() => navigate('/')}
+              className="p-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+              title="Back to Home"
+            >
+              <Home className="h-5 w-5" />
+            </button>
           </div>
           
           <div className="flex items-center space-x-4 mb-6">
@@ -546,14 +495,7 @@ export const DocumentsPage: React.FC = () => {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Documents</h1>
-              <p className="text-gray-600 dark:text-gray-300">
-                Store and organize your important documents
-                {user && (
-                  <span className="block text-sm mt-1">
-                    Welcome back, {user.user_metadata?.full_name?.split(' ')[0] || 'User'}!
-                  </span>
-                )}
-              </p>
+              <p className="text-gray-600 dark:text-gray-300">Store and organize your important documents</p>
             </div>
           </div>
 

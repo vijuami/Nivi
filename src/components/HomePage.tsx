@@ -1,11 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calculator, FileText, Mic, ArrowRight, LogIn, User } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { Calculator, FileText, Mic, ArrowRight } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
 
   const features = [
     {
@@ -41,37 +39,9 @@ export const HomePage: React.FC = () => {
     navigate(path);
   };
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
       <div className="max-w-6xl mx-auto px-6 py-12">
-        {/* Auth Status Bar */}
-        {user && (
-          <div className="flex justify-end mb-6">
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg px-4 py-2 flex items-center space-x-3">
-              <div className="flex items-center space-x-2">
-                <User className="h-4 w-4 text-gray-600 dark:text-gray-300" />
-                <span className="text-sm text-gray-700 dark:text-gray-200">
-                  {user.user_metadata?.full_name || user.email}
-                </span>
-              </div>
-              <button
-                onClick={handleSignOut}
-                className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors"
-              >
-                Sign Out
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Header */}
         <div className="text-center mb-16">
           <div className="mb-6">
@@ -136,25 +106,12 @@ export const HomePage: React.FC = () => {
         <div className="text-center">
           <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl md:rounded-2xl p-4 md:p-8 border border-gray-200 dark:border-gray-700">
             <h2 className="text-lg md:text-2xl font-bold text-gray-800 dark:text-white mb-2 md:mb-4">
-              {user ? 'Welcome Back!' : 'Everything You Need in One Place'}
+              Everything You Need in One Place
             </h2>
             <p className="text-sm md:text-base text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
-              {user 
-                ? 'Your personal data is securely stored and accessible only to you. Click on any feature above to get started.'
-                : 'NiVi AI combines intelligent financial management, secure document storage, and voice-enabled journaling to help you organize and optimize your daily life with cutting-edge AI assistance.'
-              }
+              NiVi AI combines intelligent financial management, secure document storage, and voice-enabled journaling 
+              to help you organize and optimize your daily life with cutting-edge AI assistance.
             </p>
-            {!user && (
-              <div className="mt-6">
-                <button
-                  onClick={() => navigate('/finance')}
-                  className="inline-flex items-center space-x-2 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors"
-                >
-                  <LogIn className="h-4 w-4" />
-                  <span>Get Started</span>
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </div>

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { IncomeInput } from './IncomeInput';
 import { CategoryCard } from './CategoryCard';
 import { EMITracker } from './EMITracker';
@@ -19,17 +18,12 @@ import {
   generateId
 } from '../utils/financeCalculations';
 import { TrendingUp, Target, CreditCard, Receipt, Sun, Moon, ArrowLeft } from 'lucide-react';
-import { Send, Home, Bell, LogOut } from 'lucide-react';
-import { 
-  saveUserFinanceData, 
-  loadUserFinanceData,
-  saveUserNotificationState,
-  loadUserNotificationState
-} from '../utils/supabaseStorage';
+import { Send, Home, Bell } from 'lucide-react';
+import { saveFinanceState, loadFinanceState } from '../utils/localStorage';
+import { saveNotificationState, loadNotificationState } from '../utils/localStorage';
 
 export const FinanceManagerApp: React.FC = () => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
   
   // Initialize state with data from localStorage
   const defaultFinanceState: FinanceState = {
@@ -79,48 +73,33 @@ export const FinanceManagerApp: React.FC = () => {
 
   // Load data from localStorage on component mount
   useEffect(() => {
-    const loadUserData = async () => {
-      if (!user) return;
-
-      try {
-        const loadedState = await loadUserFinanceData(user.id, defaultFinanceState);
-        const loadedNotificationState = await loadUserNotificationState(user.id, defaultNotificationState);
-        
-        // If no categories exist, initialize empty categories for display
-        if (loadedState.categories.length === 0) {
-          loadedState.categories = initializeEmptyCategories();
-        }
-        
-        setFinanceState(loadedState);
-        setNotificationState(loadedNotificationState);
-        setIsStateLoaded(true);
-        setIsNotificationStateLoaded(true);
-      } catch (error) {
-        console.error('Error loading user data:', error);
-        // Fallback to default states
-        setFinanceState({ ...defaultFinanceState, categories: initializeEmptyCategories() });
-        setNotificationState(defaultNotificationState);
-        setIsStateLoaded(true);
-        setIsNotificationStateLoaded(true);
-      }
+    const loadedState = loadFinanceState(defaultFinanceState);
+    const loadedNotificationState = loadNotificationState(defaultNotificationState);
+    
+    // If no categories exist, initialize empty categories for display
+    if (loadedState.categories.length === 0) {
+      loadedState.categories = initializeEmptyCategories();
     }
+    
+    setFinanceState(loadedState);
+    setNotificationState(loadedNotificationState);
+    setIsStateLoaded(true);
+    setIsNotificationStateLoaded(true);
+  }, []);
 
-    loadUserData();
-  }, [user]);
-
-  // Save data to database whenever financeState changes (but only after initial load)
+  // Save data to localStorage whenever financeState changes (but only after initial load)
   useEffect(() => {
-    if (isStateLoaded && user) {
-      saveUserFinanceData(user.id, financeState);
+    if (isStateLoaded) {
+      saveFinanceState(financeState);
     }
-  }, [financeState, isStateLoaded, user]);
+  }, [financeState, isStateLoaded]);
 
-  // Save notification state to database whenever it changes (but only after initial load)
+  // Save notification state to localStorage whenever it changes (but only after initial load)
   useEffect(() => {
-    if (isNotificationStateLoaded && user) {
-      saveUserNotificationState(user.id, notificationState);
+    if (isNotificationStateLoaded) {
+      saveNotificationState(notificationState);
     }
-  }, [notificationState, isNotificationStateLoaded, user]);
+  }, [notificationState, isNotificationStateLoaded]);
 
   // Initialize dark mode from localStorage
   useEffect(() => {
@@ -138,15 +117,6 @@ export const FinanceManagerApp: React.FC = () => {
     setIsDarkMode(newDarkMode);
     document.documentElement.classList.toggle('dark', newDarkMode);
     localStorage.setItem('theme', newDarkMode ? 'dark' : 'light');
-  };
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      navigate('/');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
   };
 
   // Check for debt reminders
@@ -1040,22 +1010,8 @@ export const FinanceManagerApp: React.FC = () => {
               </button>
             </div>
             
-            {/* Right side - User Info and Actions */}
+            {/* Right side - UPI Payment Button */}
             <div className="flex items-center space-x-2">
-              {/* User Info */}
-              {user && (
-                <div className="hidden sm:flex items-center space-x-2 bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-1">
-                  <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
-                    <span className="text-xs text-white font-medium">
-                      {user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
-                    </span>
-                  </div>
-                  <span className="text-sm text-gray-700 dark:text-gray-200">
-                    {user.user_metadata?.full_name || user.email}
-                  </span>
-                </div>
-              )}
-              
               {/* Notifications Button */}
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
@@ -1079,15 +1035,6 @@ export const FinanceManagerApp: React.FC = () => {
                 <span className="hidden sm:inline">UPI Pay</span>
                 <span className="sm:hidden">Pay</span>
               </button>
-              
-              {/* Sign Out Button */}
-              <button
-                onClick={handleSignOut}
-                className="p-2 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
-                title="Sign Out"
-              >
-                <LogOut className="h-5 w-5" />
-              </button>
             </div>
           </div>
 
@@ -1098,14 +1045,7 @@ export const FinanceManagerApp: React.FC = () => {
                 NiVi AI Finance Manager
               </span>
             </h1>
-            <p className="text-gray-600 dark:text-gray-300">
-              Intelligent budget allocation and expense tracking
-              {user && (
-                <span className="block text-sm mt-1">
-                  Welcome back, {user.user_metadata?.full_name?.split(' ')[0] || 'User'}!
-                </span>
-              )}
-            </p>
+            <p className="text-gray-600 dark:text-gray-300">Intelligent budget allocation and expense tracking</p>
           </div>
         </div>
 
